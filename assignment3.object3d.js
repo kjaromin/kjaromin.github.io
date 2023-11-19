@@ -208,7 +208,7 @@ class ShadedObject3D extends Object3D {
         gl.bindVertexArray(this.vertex_array_object);
         gl.bindBuffer( gl.ARRAY_BUFFER, this.vertices_buffer )
 
-        let stride = 0, offset = 0
+        let stride = (3 + 3 + 3 + 2)*4, offset = 0
 
         // This number might come in handy when setting up your attribute pointers but there's no obligation to use it
         let num_total_components = 6 // 3 position + 3 normal
@@ -217,21 +217,25 @@ class ShadedObject3D extends Object3D {
         let location = shader.getAttributeLocation( 'a_position' )
         if (location >= 0) {
             // TODO: Set up position attribute
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 0*3*4 )
         }
 
         location = shader.getAttributeLocation( 'a_normal' )
         if (location >= 0) {
             // TODO: Set up normal attribute
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 1*3*4 )
         }
 
         location = shader.getAttributeLocation( 'a_tangent' )
         if (location >= 0 && this.material.hasTexture()) {
             // TODO: Set up tangent attribute
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 2*3*4 )
         }
 
         location = shader.getAttributeLocation( 'a_texture_coord' )
         if (location >= 0 && this.material.hasTexture()) {
             // TODO: Set up texture coordinate attribute
+            gl.vertexAttribPointer( location, this.num_components_vec2, gl.FLOAT, false, stride, 3*3*4 )
         }
 
         gl.bindVertexArray( null )
@@ -252,11 +256,21 @@ class ShadedObject3D extends Object3D {
         this.shader.use( )
 
         // TODO: Pass basic material properties (kA, kD, kS, shininess)
+        this.shader.setUniform3f('u_material.kA', this.material.kA)
+        this.shader.setUniform3f('u_material.kD', this.material.kD)
+        this.shader.setUniform3f('u_material.kS', this.material.kS)
+        this.shader.setUniform1f('u_material.shininess', this.material.shininess)
+
 
         // TODO: Associate the sampler uniforms (map_kD, map_nS, map_norm) in the shader's u_material with different texture units
 
         // TODO: Activate and bind texture units if textures are present in the material
         if (this.material.hasMapKD()) {
+            gl.bindTexture(gl.TEXTURE_2D, this.material.map_kD)
+            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.UNSIGNED_BYTE, image)
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+            // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+            gl.generateMipmap(gl.TEXTURE_2D)
             // TODO
         }
 
