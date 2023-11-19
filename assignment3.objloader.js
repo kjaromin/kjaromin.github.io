@@ -111,18 +111,18 @@ class OBJLoader {
             
             // TODO: Pass tangents and texture coordinates
             for (let i = 0; i < vertex_positions.length/3; i++) {
-                vertex_data[i * 3 * 4 + 0] = vertex_positions[i + 0]
-                vertex_data[i * 3 * 4 + 1] = vertex_positions[i + 1]
-                vertex_data[i * 3 * 4 + 2] = vertex_positions[i + 2]
-                vertex_data[i * 3 * 4 + 3] = vertex_normals[i + 0]
-                vertex_data[i * 3 * 4 + 4] = vertex_normals[i + 1]
-                vertex_data[i * 3 * 4 + 5] = vertex_normals[i + 2]
-                vertex_data[i * 3 * 4 + 6] = vertex_tangents[i + 0]
-                vertex_data[i * 3 * 4 + 7] = vertex_tangents[i + 1]
-                vertex_data[i * 3 * 4 + 8] = vertex_tangents[i + 2]
-                vertex_data[i * 3 * 4 + 9] = vertex_texture_coords[i + 0]
-                vertex_data[i * 3 * 4 + 10] = vertex_texture_coords[i + 1]
-                vertex_data[i * 3 * 4 + 11] = vertex_texture_coords[i + 2]
+                vertex_data.push(vertex_positions[i + 0])
+                vertex_data.push(vertex_positions[i + 1])
+                vertex_data.push(vertex_positions[i + 2])
+                vertex_data.push(vvertex_normals[i + 0])
+                vertex_data.push(vvertex_normals[i + 1])
+                vertex_data.push(vvertex_normals[i + 2])
+                vertex_data.push(vvertex_tangents[i + 0])
+                vertex_data.push(vvertex_tangents[i + 1])
+                vertex_data.push(vvertex_tangents[i + 2])
+                vertex_data.push(vvertex_texture_coords[i + 0])
+                vertex_data.push(vvertex_texture_coords[i + 1])
+                vertex_data.push(vvertex_texture_coords[i + 2])
             }
             
         }
