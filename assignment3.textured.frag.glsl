@@ -93,8 +93,6 @@ vec3 shadeDirectionalLight(Material material, DirectionalLight light, vec3 norma
     vec3 L = -normalize(light.direction);
     vec3 V = normalize(vertex_position - eye);
 
-
-    
     vec3 scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
     vec3 scale_nS = texture(u_material.map_nS, o_texture_coord).rgb;
 
@@ -106,7 +104,6 @@ vec3 shadeDirectionalLight(Material material, DirectionalLight light, vec3 norma
     vec3 R = reflect(L, N);
     result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x * 10.0) * light.color * light.intensity * material.kS * scale_kD;
 
-    result = scale_kD;
     return result;
 }
 
@@ -147,11 +144,9 @@ void main() {
 
     // TODO: Calculate the normal from the normal map and tbn matrix to get the world normal
     vec3 normal;
-    // normal = texture(u_material.map_norm, o_texture_coord).rgb;
-    // normal = normal * 2.0 - 1.0;
-    // normal = normalize(tbn * normal);
-    // normal = normalize(normal);
-    normal = o_normal;
+    normal = texture(u_material.map_norm, o_texture_coord).rgb;
+    normal = normal * 2.0 - 1.0;
+    normal = normalize(tbn * normal);
 
     vec3 position;
     position = o_position;
