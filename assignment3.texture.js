@@ -40,10 +40,10 @@ class Texture {
         // throw '"Texture.createTexture" not implemented'
 
         // TODO: Set up texture flipping (see book Ch7)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip_y);
 
         // TODO: Create a new GL texture
-        let texture = null
+        let texture = gl.createTexture()
     
         // TODO: Set up texture config values
         // TODO: We use level 0 which is the highest detail for mipmapping
@@ -75,7 +75,7 @@ class Texture {
             // TODO: Use mipmapping and linear filtering  
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.tTexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
+            // gl.tTexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
             
         }
         

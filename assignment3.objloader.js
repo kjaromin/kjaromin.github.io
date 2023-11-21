@@ -98,7 +98,7 @@ class OBJLoader {
         // Reorder entries to match the order of vertex position indices
         [vertex_positions, vertex_normals, vertex_texture_coords, position_indices] = this.resolveIndexGroups(vertex_positions, vertex_normals, vertex_texture_coords, position_indices, normal_indices, texture_coord_indices)
 
-        throw '"OBJLoader.load" is incomplete'
+        // throw '"OBJLoader.load" is incomplete'
 
         // TODO: Merge vertex positions and normals into a single vertex list
         // TODO: If the loaded material has texture(s), pass tangents and texture coordinates too
@@ -110,21 +110,23 @@ class OBJLoader {
             vertex_tangents = this.calculateTangents(vertex_positions, vertex_texture_coords, position_indices)
             
             // TODO: Pass tangents and texture coordinates
-            for (let i = 0; i < vertex_positions.length/3; i++) {
-                vertex_data.push(vertex_positions[i + 0])
-                vertex_data.push(vertex_positions[i + 1])
-                vertex_data.push(vertex_positions[i + 2])
-                vertex_data.push(vertex_normals[i + 0])
-                vertex_data.push(vertex_normals[i + 1])
-                vertex_data.push(vertex_normals[i + 2])
+            for (let i = 0; i < vertex_positions.length / 3; i++) {
+                vertex_data.push(vertex_positions[i * 3 + 0])
+                vertex_data.push(vertex_positions[i * 3 + 1])
+                vertex_data.push(vertex_positions[i * 3 + 2])
+                vertex_data.push(vertex_normals[i * 3 + 0])
+                vertex_data.push(vertex_normals[i * 3 + 1])
+                vertex_data.push(vertex_normals[i * 3 + 2])
                 vertex_data.push(vertex_tangents[i + 0])
                 vertex_data.push(vertex_tangents[i + 1])
                 vertex_data.push(vertex_tangents[i + 2])
                 vertex_data.push(vertex_texture_coords[i + 0])
                 vertex_data.push(vertex_texture_coords[i + 1])
             }
+            // vertex_data = vertex_positions
             
         }
+        // vertex_data = vertex_positions
 
         return [ vertex_data, position_indices, material ]
     }

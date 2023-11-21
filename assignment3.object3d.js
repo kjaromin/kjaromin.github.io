@@ -201,7 +201,7 @@ class ShadedObject3D extends Object3D {
      */
     createVAO( gl, shader )
     {
-        throw '"ShadedObject3D.createVAO" is incomplete'
+        // throw '"ShadedObject3D.createVAO" is incomplete'
         // NOTE: There are now two versions of this.num_components -> this.num_components_vec3 and this.num_components_vec2 to accommodate texture coordinate data
 
         this.vertex_array_object = gl.createVertexArray();
@@ -217,25 +217,29 @@ class ShadedObject3D extends Object3D {
         let location = shader.getAttributeLocation( 'a_position' )
         if (location >= 0) {
             // TODO: Set up position attribute
-            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 0*3*4 )
+            gl.enableVertexAttribArray( location )
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 0 )
         }
 
         location = shader.getAttributeLocation( 'a_normal' )
         if (location >= 0) {
             // TODO: Set up normal attribute
-            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 1*3*4 )
+            gl.enableVertexAttribArray( location )
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 12 )
         }
 
         location = shader.getAttributeLocation( 'a_tangent' )
         if (location >= 0 && this.material.hasTexture()) {
             // TODO: Set up tangent attribute
-            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 2*3*4 )
+            gl.enableVertexAttribArray( location )
+            gl.vertexAttribPointer( location, this.num_components_vec3, gl.FLOAT, false, stride, 24 )
         }
 
         location = shader.getAttributeLocation( 'a_texture_coord' )
         if (location >= 0 && this.material.hasTexture()) {
             // TODO: Set up texture coordinate attribute
-            gl.vertexAttribPointer( location, this.num_components_vec2, gl.FLOAT, false, stride, 3*3*4 )
+            gl.enableVertexAttribArray( location )
+            gl.vertexAttribPointer( location, this.num_components_vec2, gl.FLOAT, false, stride, 36 )
         }
 
         gl.bindVertexArray( null )
@@ -251,7 +255,7 @@ class ShadedObject3D extends Object3D {
      */
     render( gl )
     {
-        throw '"ShadedObject3D.render" is incomplete'
+        // throw '"ShadedObject3D.render" is incomplete'
 
         this.shader.use( )
 
@@ -266,20 +270,24 @@ class ShadedObject3D extends Object3D {
 
         // TODO: Activate and bind texture units if textures are present in the material
         if (this.material.hasMapKD()) {
-            gl.bindTexture(gl.TEXTURE_2D, this.material.map_kD)
-            // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.UNSIGNED_BYTE, image)
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
-            // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
-            gl.generateMipmap(gl.TEXTURE_2D)
             // TODO
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapKD());
+            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex0"), 0);
         }
 
         if (this.material.hasMapNS()) {
             // TODO
+            // gl.activeTexture(gl.TEXTURE1);
+            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNS());
+            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex1"), 1);
         }
 
         if (this.material.hasMapNorm()) {
             // TODO
+            // gl.activeTexture(gl.TEXTURE2);
+            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNorm());
+            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex2"), 2);
         }
 
         this.shader.unuse( )
