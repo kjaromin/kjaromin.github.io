@@ -1,0 +1,67 @@
+# Blender 4.0.1 MTL File: '2023-11-20-Rig-Stylization-Test.blend'
+# www.blender.org
+
+newmtl Body
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.187821 0.114435 0.070360
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ../common/Metal_Damascus_Steel_001/basecolor.jpg
+map_Ns ../common/Metal_Damascus_Steel_001/roughness.jpg
+map_Bump ../common/Metal_Damascus_Steel_001/normal.jpg
+
+newmtl Leggings
+Ns 0.000000
+Ka 0.984375 0.984375 0.984375
+Kd 0.187821 0.114435 0.070360
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 3
+map_Kd ../common/Metal_Damascus_Steel_001/basecolor.jpg
+map_Ns ../common/Metal_Damascus_Steel_001/roughness.jpg
+map_Bump ../common/Metal_Damascus_Steel_001/normal.jpg
+
+newmtl Shirt
+Ns 0.000000
+Ka 0.750000 0.750000 0.750000
+Kd 0.593910 0.557218 0.535180
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 0.000000
+d 1.000000
+illum 1
+map_Kd ../common/Metal_Damascus_Steel_001/basecolor.jpg
+map_Ns ../common/Metal_Damascus_Steel_001/roughness.jpg
+map_Bump ../common/Metal_Damascus_Steel_001/normal.jpg
+
+newmtl Teeth
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ../common/Metal_Damascus_Steel_001/basecolor.jpg
+map_Ns ../common/Metal_Damascus_Steel_001/roughness.jpg
+map_Bump ../common/Metal_Damascus_Steel_001/normal.jpg
+
+newmtl Tongue
+Ns 1000.000000
+Ka 0.500000 0.500000 0.500000
+Kd 0.250000 0.062500 0.062500
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd ../common/Metal_Damascus_Steel_001/basecolor.jpg
+map_Ns ../common/Metal_Damascus_Steel_001/roughness.jpg
+map_Bump ../common/Metal_Damascus_Steel_001/normal.jpg
