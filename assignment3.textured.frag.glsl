@@ -51,6 +51,11 @@ out vec4 o_fragColor;
 
 // received from vertex stage
 // TODO: Create variables to receive from the vertex stage
+in vec3 o_position;
+in vec3 o_normal;
+in vec3 o_tangent;
+in vec2 o_texture_coord;
+in mat3 tbn;
 
 // Shades an ambient light and returns this light's contribution
 vec3 shadeAmbientLight(Material material, AmbientLight light) {
@@ -61,7 +66,14 @@ vec3 shadeAmbientLight(Material material, AmbientLight light) {
     // HINT: Refer to http://paulbourke.net/dataformats/mtl/ for details
     // HINT: Parts of ./shaders/phong.frag.glsl can be re-used here
 
-    return vec3(0);
+    if (light.intensity == 0.0)
+        return vec3(0);
+
+    vec3 result = vec3(0);
+
+    result += light.color * light.intensity * material.kA;
+
+    return result;
 }
 
 // Shades a directional light and returns its contribution
@@ -72,8 +84,30 @@ vec3 shadeDirectionalLight(Material material, DirectionalLight light, vec3 norma
     // HINT: The darker pixels in the roughness map (map_nS) are the less shiny it should be
     // HINT: Refer to http://paulbourke.net/dataformats/mtl/ for details
     // HINT: Parts of ./shaders/phong.frag.glsl can be re-used here
+    
+    vec3 result = vec3(0);
+    if (light.intensity == 0.0)
+        return result;
 
-    return vec3(0);
+    vec3 N = normalize(normal);
+    vec3 L = -normalize(light.direction);
+    vec3 V = normalize(vertex_position - eye);
+
+
+    
+    vec3 scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
+    vec3 scale_nS = texture(u_material.map_nS, o_texture_coord).rgb;
+
+    // Diffuse
+    float LN = max(dot(L, N), 0.0);
+    result += LN * light.color * light.intensity * material.kD * scale_kD;
+
+    // Specular
+    vec3 R = reflect(L, N);
+    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x * 10.0) * light.color * light.intensity * material.kS * scale_kD;
+
+    result = scale_kD;
+    return result;
 }
 
 // Shades a point light and returns its contribution
@@ -84,14 +118,43 @@ vec3 shadePointLight(Material material, PointLight light, vec3 normal, vec3 eye,
     // HINT: The darker pixels in the roughness map (map_nS) are the less shiny it should be
     // HINT: Refer to http://paulbourke.net/dataformats/mtl/ for details
     // HINT: Parts of ./shaders/phong.frag.glsl can be re-used here
+    
+    if (light.intensity == 0.0)
+        return vec3(0);
+    
+    vec3 result = vec3(0);
 
-    return vec3(0);
+    vec3 N = normalize(normal);
+    float D = distance(light.position, vertex_position);
+    vec3 L = normalize(light.position - vertex_position);
+    vec3 V = normalize(vertex_position - eye);
+
+    // Diffuse
+    float LN = max(dot(L, N), 0.0);
+    result += LN * light.color * light.intensity * material.kD;
+
+    // Specular
+    vec3 R = reflect(L, N);
+    result += pow( max(dot(R, V), 0.0), material.shininess) * light.color * light.intensity * material.kS;
+
+    // Attenuation
+    result *= 1.0 / (D*D+1.0);
+
+    return result;
 }
 
 void main() {
 
     // TODO: Calculate the normal from the normal map and tbn matrix to get the world normal
-    vec3 normal = vec3(0,0,0);
+    vec3 normal;
+    // normal = texture(u_material.map_norm, o_texture_coord).rgb;
+    // normal = normal * 2.0 - 1.0;
+    // normal = normalize(tbn * normal);
+    // normal = normalize(normal);
+    normal = o_normal;
+
+    vec3 position;
+    position = o_position;
 
     // if we only want to visualize the normals, no further computations are needed
     // !do not change this code!
@@ -106,6 +169,9 @@ void main() {
     // iterate over all possible lights and add their contribution
     for(int i = 0; i < MAX_LIGHTS; i++) {
         // TODO: Call your shading functions here like you did in A5
+        light_contribution += shadeAmbientLight(u_material, u_lights_ambient[i]);
+        light_contribution += shadeDirectionalLight(u_material, u_lights_directional[i], normal, u_eye, position);
+        light_contribution += shadePointLight(u_material, u_lights_point[i], normal, u_eye, position);
     }
 
     o_fragColor = vec4(light_contribution, 1.0);

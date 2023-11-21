@@ -117,11 +117,17 @@ class OBJLoader {
                 vertex_data.push(vertex_normals[i * 3 + 0])
                 vertex_data.push(vertex_normals[i * 3 + 1])
                 vertex_data.push(vertex_normals[i * 3 + 2])
-                vertex_data.push(vertex_tangents[i + 0])
-                vertex_data.push(vertex_tangents[i + 1])
-                vertex_data.push(vertex_tangents[i + 2])
-                vertex_data.push(vertex_texture_coords[i + 0])
-                vertex_data.push(vertex_texture_coords[i + 1])
+                vertex_data.push(vertex_tangents[i * 3 + 0])
+                vertex_data.push(vertex_tangents[i * 3 + 1])
+                vertex_data.push(vertex_tangents[i * 3 + 2])
+                if(i * 2 > vertex_texture_coords.length) {
+                    vertex_data.push(0)
+                    vertex_data.push(0)
+                } else {
+                    vertex_data.push(vertex_texture_coords[i * 2 + 0])
+                    vertex_data.push(vertex_texture_coords[i * 2 + 1])
+                }
+                
             }
             // vertex_data = vertex_positions
             

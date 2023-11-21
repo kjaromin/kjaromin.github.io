@@ -267,27 +267,30 @@ class ShadedObject3D extends Object3D {
 
 
         // TODO: Associate the sampler uniforms (map_kD, map_nS, map_norm) in the shader's u_material with different texture units
+        const sampler_map_kD = gl.getUniformLocation(this.shader.program, "u_material.map_kD");
+        const sampler_map_nS = gl.getUniformLocation(this.shader.program, "u_material.map_nS");
+        const sampler_map_norm = gl.getUniformLocation(this.shader.program, "u_material.map_norm");
+        gl.uniform1i(sampler_map_kD, 0);
+        gl.uniform1i(sampler_map_nS, 1);
+        gl.uniform1i(sampler_map_norm, 2);
 
         // TODO: Activate and bind texture units if textures are present in the material
         if (this.material.hasMapKD()) {
             // TODO
-            // gl.activeTexture(gl.TEXTURE0);
-            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapKD());
-            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex0"), 0);
+            gl.activeTexture(gl.TEXTURE0)
+            gl.bindTexture(gl.TEXTURE_2D, this.material.getMapKD())
         }
 
         if (this.material.hasMapNS()) {
             // TODO
-            // gl.activeTexture(gl.TEXTURE1);
-            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNS());
-            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex1"), 1);
+            gl.activeTexture(gl.TEXTURE1)
+            gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNS())
         }
 
         if (this.material.hasMapNorm()) {
             // TODO
-            // gl.activeTexture(gl.TEXTURE2);
-            // gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNorm());
-            // gl.uniform1i(gl.getUniformLocation(this.shader, "Tex2"), 2);
+            gl.activeTexture(gl.TEXTURE2)
+            gl.bindTexture(gl.TEXTURE_2D, this.material.getMapNorm())
         }
 
         this.shader.unuse( )
