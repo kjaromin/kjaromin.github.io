@@ -98,7 +98,7 @@ vec3 shadeDirectionalLight(Material material, DirectionalLight light, vec3 norma
 
     // Specular
     vec3 R = reflect(L, N);
-    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x * 10.0) * light.color * light.intensity * material.kS;
+    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x) * light.color * light.intensity * material.kS;
 
     return result;
 }
