@@ -56,6 +56,8 @@ in vec3 o_normal;
 in vec3 o_tangent;
 in vec2 o_texture_coord;
 in mat3 tbn;
+vec3 scale_kD;
+vec3 scale_nS;
 
 // Shades an ambient light and returns this light's contribution
 vec3 shadeAmbientLight(Material material, AmbientLight light) {
@@ -69,8 +71,6 @@ vec3 shadeAmbientLight(Material material, AmbientLight light) {
     vec3 result = vec3(0);
     if (light.intensity == 0.0)
         return vec3(0);
-
-    vec3 scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
 
     return light.color * light.intensity * material.kA * scale_kD;
 }
@@ -92,16 +92,13 @@ vec3 shadeDirectionalLight(Material material, DirectionalLight light, vec3 norma
     vec3 L = -normalize(light.direction);
     vec3 V = normalize(vertex_position - eye);
 
-    vec3 scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
-    vec3 scale_nS = texture(u_material.map_nS, o_texture_coord).rgb;
-
     // Diffuse
     float LN = max(dot(L, N), 0.0);
     result += LN * light.color * light.intensity * material.kD * scale_kD;
 
     // Specular
     vec3 R = reflect(L, N);
-    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x * 10.0) * light.color * light.intensity * material.kS * scale_kD;
+    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x * 10.0) * light.color * light.intensity * material.kS;
 
     return result;
 }
@@ -115,10 +112,9 @@ vec3 shadePointLight(Material material, PointLight light, vec3 normal, vec3 eye,
     // HINT: Refer to http://paulbourke.net/dataformats/mtl/ for details
     // HINT: Parts of ./shaders/phong.frag.glsl can be re-used here
     
+    vec3 result = vec3(0);
     if (light.intensity == 0.0)
         return vec3(0);
-    
-    vec3 result = vec3(0);
 
     vec3 N = normalize(normal);
     float D = distance(light.position, vertex_position);
@@ -127,11 +123,11 @@ vec3 shadePointLight(Material material, PointLight light, vec3 normal, vec3 eye,
 
     // Diffuse
     float LN = max(dot(L, N), 0.0);
-    result += LN * light.color * light.intensity * material.kD;
+    result += LN * light.color * light.intensity * material.kD * scale_kD;
 
     // Specular
     vec3 R = reflect(L, N);
-    result += pow( max(dot(R, V), 0.0), material.shininess) * light.color * light.intensity * material.kS;
+    result += pow( max(dot(R, V), 0.0), material.shininess * scale_nS.x) * light.color * light.intensity * material.kS;
 
     // Attenuation
     result *= 1.0 / (D*D+1.0);
@@ -149,6 +145,9 @@ void main() {
 
     vec3 position;
     position = o_position;
+    
+    scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
+    scale_nS = texture(u_material.map_nS, o_texture_coord).rgb;
 
     // if we only want to visualize the normals, no further computations are needed
     // !do not change this code!
