@@ -265,7 +265,6 @@ class ShadedObject3D extends Object3D {
         this.shader.setUniform3f('u_material.kS', this.material.kS)
         this.shader.setUniform1f('u_material.shininess', this.material.shininess)
 
-
         // TODO: Associate the sampler uniforms (map_kD, map_nS, map_norm) in the shader's u_material with different texture units
         const sampler_map_kD = gl.getUniformLocation(this.shader.program, "u_material.map_kD");
         const sampler_map_nS = gl.getUniformLocation(this.shader.program, "u_material.map_nS");

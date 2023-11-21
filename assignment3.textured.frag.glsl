@@ -66,14 +66,13 @@ vec3 shadeAmbientLight(Material material, AmbientLight light) {
     // HINT: Refer to http://paulbourke.net/dataformats/mtl/ for details
     // HINT: Parts of ./shaders/phong.frag.glsl can be re-used here
 
+    vec3 result = vec3(0);
     if (light.intensity == 0.0)
         return vec3(0);
 
-    vec3 result = vec3(0);
+    vec3 scale_kD = texture(u_material.map_kD, o_texture_coord).rgb;
 
-    result += light.color * light.intensity * material.kA;
-
-    return result;
+    return light.color * light.intensity * material.kA * scale_kD;
 }
 
 // Shades a directional light and returns its contribution
