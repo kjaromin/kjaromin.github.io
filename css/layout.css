@@ -11,6 +11,7 @@
     justify-content: center;
     align-items: center;
     padding: 25px;
+    background-color:#f7efe1;
 }
 
 html {
@@ -43,7 +44,7 @@ h1 {
 
 h2 {
     font-size: 1.2em;
-    font-weight: 300;
+    font-weight: 600;
     margin-bottom: 0;
 }
 
@@ -55,4 +56,8 @@ h3 {
 
 p {
     margin: 25px;
+    background-color:#fef9f0;
+}
+
+iframe {
 }
