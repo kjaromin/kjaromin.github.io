@@ -14,7 +14,7 @@
             <p>Two years after graduating, in 2022, I decided to revisit it. </p>
             <iframe src="https://player.vimeo.com/video/751405126?h=ddc4f75c2c" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <p>Initially the first idea for this algorithm involved taking a simple cube and splitting it in half, then repeatedly doing this and generating walls at the end. Above shows the result: hundreds upon hundreds of randomly generated room layouts.</p>
-            <p>I realized the idea had potential, but I also realized that, while it had the potential to create lots of different room configurations, it could only work with squares and sharp angles. So I decided to make it more applicable.</p>
+            <p>I realized the idea had potential, but I also realized that it could only work with squares and sharp angles. So I decided to make it more applicable.</p>
             <iframe src="https://player.vimeo.com/video/781592677?h=c6007032e8" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <p>A couple of months later I reapproached the idea with a Cut subalgorithm, which takes in a shape and an arbitrary green line and slices the shape into corresponding pieces.</p>
             <iframe src="https://player.vimeo.com/video/781601485?h=a4463099b9" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
@@ -47,24 +47,68 @@
             <h1>Generators</h1>
             <ul>
                 <li>
+                    Add Door - Not implemented yet.
 
-                    - Build Area
-                    - Build Perimeter
-                    - Generate From Venn
-                    - Generate Square From Vertex
-                    - Get Initial Geometries
-                    - Insert Schematic
-                    - Select
-                    - Select Vertex
+                    Add Geometry - Adds a geometry to a schematic.
+                    
+                    Build Area - Fills the area with 3D geometry using a given offset and height.
+                    
+                    Build Perimeter - Fills the perimeter with 3D geometry using a given offset, height, and thickness.
+                    
+                    Find Area - Calculates the area.
+                    
+                    Find Perimeter - Calculates the perimeter.
+                    
+                    Generate from Intrude - Intrudes or shrinks one or more geometries by a given amount.
+                    
+                    Generate from Reverse - Flips one or more geometries inside out.
+                    
+                    Generate from Venn - Takes two sets of geometries and finds the union, intersection, and negations of them.
+                    Generate Square from Geometries - Takes a set of geometries and generates a square from one of their vertices.
+                    Generate Square from Vertex - Generates a square from a vertex.
+                    
+                    Get Geometries - Gets the geometries of the given schematic.
+                    
+                    Insert Schematic - Inserts a new schematic into the current one.
+                    
+                    Select - Selects an object from a list of objects.
+                    
+                    Select Geometry - Selects a geometry from a given schematic’s geometries.
+                    
+                    Select Vertex - Selects a vertex from a given geometry.
+                    
+                    Set Color From HSV - Sets the color of a set of given parts using hue, saturation, and value properties.
+                    
+                    Set Color From RGB - Sets the color of a set of given parts using red, green, and blue properties.
+                    
+                    Set Color From Hex - Sets the color of a set of given parts using a hex property.
+                    
+                    Set Material - Sets the material of a set of given parts.
                 </li>
             </ul>
             <h1>Schematics</h1>
             <ul>
-                <li> Expansion — A schematic which takes in an existing schematic and expands off it.</li>
-                <li> Platform — A platform.</li>
-                <li> Room — A platform with walls and a ceiling.</li>
-                <li> Yard — A platform with walls.</li>
+                <li>Blank - A blank schematic.
+
+                    Expansion - A schematic demonstrating expansion of the current schematic.
+                    
+                    Intrusion - A schematic demonstrating intrusion of the current shematic.
+                    
+                    Lobby - Similar to an intrusion, but with a table in the center.
+                    
+                    Platform - A platform schematic.
+                    
+                    Room - A platform schematic with walls and a ceiling.
+                    
+                    Table - A simple schematic that generates a table.
+                    
+                    Yard - A platform schematic with walls.
+                </li>
             </ul>
+            <h1>Materials</h1>
+            
+            <a href="https://create.roblox.com/docs/parts/materials#base-materials">For a list of materials, refer to this website (under "2022 Base -> Materials")!</a>
+            <h1>Test</h1>
             <a href="https://www.roblox.com/games/16204690062/Schematics-Test">Test the designer!</a>
         </div>
     </body>
