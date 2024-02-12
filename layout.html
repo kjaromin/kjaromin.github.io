@@ -15,10 +15,10 @@
             <p>I started the layout designer in 2020 during  the pandemic. It began because, at the time, I would play online escape games with my high school friends. I became obsessed with the idea of these escape games having encounters and environments which are randomly generated.</p>
             <p>Two years after graduating, in 2022, I decided to revisit it. </p>
             <iframe src="https://player.vimeo.com/video/751405126?h=ddc4f75c2c" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-            <p>Initially the big idea for this algorithm involved taking a simple cube and splitting it in half, then repeatedly doing this and generating walls at the end. Above shows the result: hundreds upon hundreds of randomly generated room layouts.</p>
-            <p>I realized the idea had potential, but I also realized that it could only work with squares and sharp angles. So I decided to make it more applicable.</p>
+            <p>Initially the big idea for this algorithm involved taking a cube part and splitting it in half, then repeatedly doing this and generating walls at the end. Above shows the result: hundreds upon hundreds of randomly generated room layouts.</p>
+            <p>I realized the idea had potential, but I also realized that it could only work with squares and 90 degree angles. So I decided to make it more applicable.</p>
             <iframe src="https://player.vimeo.com/video/781592677?h=c6007032e8" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-            <p>A couple of months later I reapproached the idea with a Cut subalgorithm, which takes in a shape and an arbitrary green line and slices the shape into corresponding pieces.</p>
+            <p>A couple of months later I reapproached the idea with a Cut subalgorithm, which takes in a shape and an arbitrary line and slices the shape into different pieces.</p>
             <iframe src="https://player.vimeo.com/video/781601485?h=a4463099b9" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <p>Then those said pieces could be built into walkable spaces.</p>
             <iframe src="https://player.vimeo.com/video/782408271?h=72150205e2" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
@@ -27,11 +27,11 @@
             <p>Occasionally there would be a glitch and the cut would fail due to issues with numeric stablity. So I implemented a cut renderer to scan for any irregular results or clipping issues. As I worked on it, I got the algorithm to have a near-flawless success rate. Above shows a video of the revised algorithm at work, each frame being a new cut, with no glitches.</p>
             <iframe src="https://player.vimeo.com/video/792515159?h=b461c48e7e" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <p>Here's another video, but with each frame having multiple cuts.</p>
-            <p>Behind the scenes, I did a lot of brainstorming to see how I could find a way to generate spaces with intention. For example, instead of walking around an arbitrary polygon, how could I make the space look and feel more functional?</p>
+            <p>Behind the scenes, I did a lot of brainstorming. I searched for ways to generate spaces with more intention and figured that the best way to accomplish this was to upgrade from a cut algorhtm to a clipping algorithm such as negation, intersection, and union.</p>
             <p>After a lot of revising and reapproaching throughout the years, I redesigned the entite system from the ground up based around a widely known concept: a Venn diagram.</p>
             <iframe src="https://player.vimeo.com/video/909854785?h=a0f2912a5a" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <p>Intersection, negation, and union happen when you overlap two shapes much like a Venn diagram. Think of union as the combined two shapes, intersection as the area included by the two shapes, and negation as one shape clipped by the other shape.</p>
-            <p>It took lots of drawing and testing to wrap my head around this.</p>
+            <p>It took lots of drawing and testing to figure out how to code this and which direction to go when an intersection is encountered.</p>
             <img src="2024_02_03_0n1_Kleki.png" width="640" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <img src="2024_02_03_0r1_Kleki.png" width="640" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
             <img src="2024_02_03_01c_Kleki.png" width="640" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
@@ -41,12 +41,15 @@
             <p>Eventually, I got it right, however.</p>
             <!-- <p>Back in a Computer Graphics class I took as part of my CS courses, I learned about a crucial item called a buffer which stores things like </p> -->
             <iframe src="https://player.vimeo.com/video/909942216?h=75cbeae0b8" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-            <p>And so here it is: The finished result of the Venn subalgorithm, which takes two shapes and calculates all four (intersection, union, left negation, and right negation) from an overlap.</p>
-            <p>This algorithm became the building block for a really ambitious system I started very recently, which was a schematics system that uses this algorithm to construct new areas from scratch.</p>
+            <p>Here is the finished result of the Venn subalgorithm, which takes two shapes and calculates all four (intersection, union, left negation, and right negation) from an overlap.</p>
+            <p>This algorithm became the building block for a schematics system, which uses the Venn algorithm to subdivide areas as well as carve new areas from scratch.</p>
             <iframe src="https://player.vimeo.com/video/910623956?h=f7d46dd8e6" width="640" height="564" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
-            <p>As of February 2023, I've developed a node based editor to edit generated layouts and change things such as wall heights and thicknesses as well as expansions off of existing spaces.</p>
-            <p>Continuing this algorithm will mean finishing this node-based editor and to turn the product into something more readable.</p>
+            <p>I then developed a node based editor that intuitively lets me use the Venn algorithm in tandem with other algorithms I designed along the way. I made an area building algorithm, which uses triangulation to fill in an area with Parts, and a perimeter building algorithm, which traces the current shape and places Parts along its perimeter.</p>
+            <p>As of February 2024, this is the current progress of the system.</p>
+            <p>Continuing this algorithm will mean finishing this node-based editor and experimenting with ways to make it more intuitive and interactive.</p>
             
+            <a href="https://breezy-cattle-f26.notion.site/Keys-e88839e4b0df4c6082435a8deead1341?pvs=4">View Generator Keys</a>
+            <a href="https://www.roblox.com/games/16204690062/Schematics-Test">Schematics Test</a>
             <!-- <h1>Generators</h1>
             <ul>
                 <li>
