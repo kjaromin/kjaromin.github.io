@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choreography Scheduler</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: auto; }
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; padding: 20px; }
+        .container { max-width: 640px; margin: auto; }
         .section { margin-bottom: 20px; }
         button { padding: 8px 12px; cursor: pointer; margin: 5px; }
         .schedule-bar, .dancer-bar {
@@ -16,7 +16,6 @@
             position: relative;
             background: #ddd;
         }
-        
         .schedule-segment {
             height: 100%;
             text-align: center;
@@ -25,8 +24,44 @@
             position: absolute;
             margin-right: 2px;
             border-radius: 3px;
-            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.25);
         }
+        .unified-schedule-bar {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .unified-schedule-container {
+            position: relative;
+            width: 100%;
+            height:100px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .unified-schedule-segment {
+            position: absolute;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: white;
+            border-radius: 5px;
+            padding: 2px;
+            box-sizing: border-box;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            transition: 0.2s ease-out;
+        }
+
 
     </style>
 </head>
@@ -34,7 +69,7 @@
     <div class="container">
         <button onclick="undoLastAction()">Undo</button>
         <button onclick="redoLastAction()">Redo</button>
-        <button onclick="clearData()" style="background-color: rgb(59, 59, 59); color: white;">Clear All Data</button>
+        <button onclick="clearData()">Clear All Data</button>
         <h2>Choreography Scheduler</h2>
         <div class="section">
             <h3>Teachers</h3>
@@ -45,11 +80,13 @@
 
         <div class="section">
             <h3>Groups</h3>
+            <input type="text" id="groupName" placeholder="Group Name">
             <input type="number" id="groupDuration" placeholder="Duration (min)">
             <input type="text" id="groupDancers" placeholder="Dancer Names (space-separated)">
             <button onclick="addGroup()">Add Group</button>
-            <ul id="groupList" class="sortable"></ul>
+            <ul id="groupList"></ul>
         </div>
+        <div id="unifiedScheduleOutput"></div>
         
         <div class="section">
             <h3>Teacher Schedules</h3>
@@ -59,6 +96,7 @@
             <h3>Dancer Schedules</h3>
             <div id="dancerOutputs"></div>
         </div>
+
     </div>
 
     <script>
@@ -108,6 +146,13 @@
             if (event.key === "Enter") {
                 event.preventDefault(); // Prevent form submission
                 addTeacher();
+            }
+        });
+
+        document.getElementById("groupName").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById("groupDuration").focus(); // Move focus to the dancers field
             }
         });
 
@@ -194,73 +239,32 @@
         }
 
         function addGroup() {
+
+            let groupName = document.getElementById("groupName").value.trim();
+            let groupId = groupName !== "" ? groupName : String(groups.length + 1); // Always a string
             let duration = parseInt(document.getElementById("groupDuration").value);
-            let dancers = document.getElementById("groupDancers").value.split(',').map(d => d.trim());
+            let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
+            
+            if (groups.some(g => g.id == groupId)) {
+                alert("Group name already exists! Please choose a different name.");
+                return;
+            }
 
             if (!isNaN(duration) && dancers.length > 0) {
-                let index = groups.length;
-                let group = { id: index + 1, duration, dancers };
+                saveToHistory();
+                let groupId = groupName != "" ? groupName : groups.length + 1;
+                let group = { id: groupId, duration, dancers };
                 groups.push(group);
+                saveData();
+                updateGroupList();
 
-                let groupItem = document.createElement("li");
-                groupItem.innerHTML = `
-                    Group ${group.id}: ${duration} min, Dancers: ${dancers.join(", ")}
-                    <button onclick="moveGroup(${index}, -1)">↑</button>
-                    <button onclick="moveGroup(${index}, 1)">↓</button>
-                `;
-                document.getElementById("groupList").appendChild(groupItem);
+                document.getElementById("groupName").value = "";
+                document.getElementById("groupDuration").value = "";
+                document.getElementById("groupDancers").value = "";
             }
+
+            generateSchedule()
         }
-        function moveGroup(index, direction) {
-            let newIndex = index + direction;
-            if (newIndex >= 0 && newIndex < groups.length) {
-                [groups[index], groups[newIndex]] = [groups[newIndex], groups[index]];
-                updateUI();
-            }
-        }
-        function updateGroupOrder() {
-            const newOrder = Array.from(document.querySelectorAll("#groupList li")).map(li => parseInt(li.dataset.index));
-            groups = newOrder.map(i => groups[i]);
-        }
-
-        function makeListSortable(listId, onUpdate) {
-            const list = document.getElementById(listId);
-
-            list.addEventListener("dragstart", (event) => {
-                event.target.classList.add("dragging");
-                event.dataTransfer.setData("text/plain", event.target.dataset.index);
-            });
-
-            list.addEventListener("dragover", (event) => {
-                event.preventDefault();
-                const draggingElement = list.querySelector(".dragging");
-                const afterElement = getDragAfterElement(list, event.clientY);
-                if (afterElement == null) {
-                    list.appendChild(draggingElement);
-                } else {
-                    list.insertBefore(draggingElement, afterElement);
-                }
-            });
-
-            list.addEventListener("dragend", () => {
-                document.querySelectorAll(".dragging").forEach(el => el.classList.remove("dragging"));
-                onUpdate(); // Update the underlying data structure
-            });
-        }
-        
-
-        function getDragAfterElement(list, y) {
-            const draggableElements = [...list.querySelectorAll("li:not(.dragging)")];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
-        // Apply sortable behavior to groups
-        makeListSortable("groupList", updateGroupOrder);
-
 
         function deleteGroup(groupId) {
             saveToHistory();
@@ -269,23 +273,6 @@
             updateGroupList();
             generateSchedule();
         }
-
-
-        // function addTeacher() {
-        //     let name = document.getElementById("teacherName").value.trim();
-        //     if (name && !teachers.includes(name)) {
-        //         teachers.push(name);
-        //         saveData();
-        //         updateTeacherList();
-        //         document.getElementById("teacherName").value = "";
-        //     }
-        // }
-
-        // function deleteTeacher(name) {
-        //     teachers = teachers.filter(t => t !== name);
-        //     saveData();
-        //     updateTeacherList();
-        // }
 
         function updateTeacherList() {
             let teacherList = document.getElementById("teacherList");
@@ -297,34 +284,12 @@
             `).join('');
         }
 
-        // function addGroup() {
-        //     let duration = parseInt(document.getElementById("groupDuration").value);
-        //     let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
-
-        //     if (!isNaN(duration) && dancers.length > 0) {
-        //         let groupId = groups.length + 1;
-        //         let group = { id: groupId, duration, dancers };
-        //         groups.push(group);
-        //         saveData();
-        //         updateGroupList();
-
-        //         document.getElementById("groupDuration").value = "";
-        //         document.getElementById("groupDancers").value = "";
-        //     }
-        // }
-
-        // function deleteGroup(groupId) {
-        //     groups = groups.filter(g => g.id !== groupId);
-        //     saveData();
-        //     updateGroupList();
-        // }
-
         function updateGroupList() {
             let groupList = document.getElementById("groupList");
             groupList.innerHTML = groups.map(g => `
                 <li>
                     Group ${g.id}: ${g.duration} min, Dancers: ${g.dancers.join(", ")}
-                    <button onclick="deleteGroup(${g.id})" style="margin-left: 10px; color: red;">X</button>
+                    <button onclick="deleteGroup('${g.id}')" style="margin-left: 10px; color: red;">X</button>
                 </li>
             `).join('');
         }
@@ -340,8 +305,92 @@
             document.getElementById("scheduleOutputs").innerHTML = "";
             document.getElementById("dancerOutputs").innerHTML = "";
         }
+        
+        function generateUnifiedSchedule() {
+    if (teachers.length === 0 && groups.length === 0) {
+        alert("Please add at least one teacher and one group.");
+        return;
+    }
+
+    let availability = new Map();
+    let scheduleEntries = [];
+    let teacherColors = {};
+    
+    teachers.forEach((t, i) => {
+        availability.set(t, 0);
+        teacherColors[t] = `hsl(${(i * 60 + 335) % 360}, 75%, 62.5%)`;
+    });
+
+    groups.forEach(group => {
+        group.dancers.forEach(d => {
+            if (!availability.has(d)) {
+                availability.set(d, 0);
+            }
+        });
+    });
+
+    for (let group of groups) {
+        let availableTeachers = teachers.filter(t => !group.dancers.includes(t));
+        let teacherIdx;
+
+        if (group.dancers.some(d => teachers.includes(d))) {
+            teacherIdx = teachers.indexOf(group.dancers.find(d => teachers.includes(d)));
+        } else {
+            teacherIdx = teachers.indexOf(availableTeachers.sort((a, b) => availability.get(a) - availability.get(b))[0]);
+        }
+
+        let teacher = teachers[teacherIdx];
+        let startTime = Math.max(availability.get(teacher), ...group.dancers.map(d => availability.get(d)));
+        let endTime = startTime + group.duration;
+
+        availability.set(teacher, endTime);
+        group.dancers.forEach(d => availability.set(d, endTime));
+
+        scheduleEntries.push({
+            id: group.id,
+            startTime,
+            endTime,
+            duration: group.duration,
+            teacher,
+            dancers: group.dancers
+        });
+    }
+
+    scheduleEntries.sort((a, b) => a.startTime - b.startTime);
+
+    // Prevent overlaps by dynamically assigning rows
+    let rows = [];
+    
+    scheduleEntries.forEach(entry => {
+        let assignedRow = 0;
+        while (rows[assignedRow]?.some(e => !(entry.startTime >= e.endTime || entry.endTime <= e.startTime))) {
+            assignedRow++;
+        }
+        if (!rows[assignedRow]) rows[assignedRow] = [];
+        rows[assignedRow].push(entry);
+        entry.row = assignedRow;
+    });
+
+    document.getElementById("unifiedScheduleOutput").innerHTML = `
+        <h4>Unified Schedule</h4>
+        <div class="unified-schedule-container">
+            ${scheduleEntries.map(g => `
+                <div class="unified-schedule-segment" style="
+                    left: ${g.startTime * 5}px; 
+                    width: ${g.duration * 5 - 2}px; 
+                    background: ${teacherColors[g.teacher]};
+                    top: ${g.row * 60}px;
+                ">
+                    ${g.id} (T: ${g.teacher}, D: ${g.dancers.join(', ')})
+                </div>`).join('')}
+        </div>
+    `;
+}
+
+
 
         function generateSchedule() {
+            // generateUnifiedSchedule();
             if (teachers.length === 0 && groups.length === 0) {
                 alert("Please add at least one teacher and one group.");
                 return;
@@ -351,7 +400,7 @@
             let dancerAvailability = new Map();
             let dancerSchedules = new Map();
 
-            groups.sort((a, b) => (b.duration * (b.dancers.length + 1)) - (a.duration * (a.dancers.length + 1)));
+            // groups.sort((a, b) => (b.duration * (b.dancers.length + 1)) - (a.duration * (a.dancers.length + 1)));
 
             let schedules = teachers.map(t => ({ teacher: t, schedule: [], totalDuration: 0 }));
 
@@ -388,19 +437,19 @@
                 schedules[teacherIdx].schedule.push({ id: group.id, startTime, endTime, duration: group.duration });
                 schedules[teacherIdx].totalDuration = endTime;
             }
-
-
             document.getElementById("scheduleOutputs").innerHTML = schedules.map(s => `
                 <h4>${s.teacher}'s Schedule</h4>
                 <div class="schedule-bar">
-                    ${s.schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${g.duration * 5}px; background: ${teacherColors[s.teacher]}">G${g.id}</div>`).join('')}
+                    ${s.schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${g.duration * 5 - 2}px; background: ${teacherColors[s.teacher]}">${g.id}</div>`).join('')}
                 </div>
             `).join('');
+
+            
 
             document.getElementById("dancerOutputs").innerHTML = Array.from(dancerSchedules.entries()).map(([dancer, schedule]) => `
                 <h4>${dancer}'s Schedule</h4>
                 <div class="dancer-bar">
-                    ${schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${(g.endTime - g.startTime) * 5}px; background: ${teacherColors[g.teacher]}">G${g.groupId}</div>`).join('')}
+                    ${schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${(g.endTime - g.startTime) * 5 - 2}px; background: ${teacherColors[g.teacher]}">${g.groupId}</div>`).join('')}
                 </div>
             `).join('');
         }
