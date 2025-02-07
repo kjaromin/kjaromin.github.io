@@ -28,13 +28,13 @@
             box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
 
-        .dancer-bar { width: 100%; background: #e0e0e0; height: 20px; margin: 5px 0; position: relative; display: flex; }
     </style>
 </head>
 <body>
     <div class="container">
         <button onclick="undoLastAction()">Undo</button>
         <button onclick="redoLastAction()">Redo</button>
+        <button onclick="clearData()" style="background-color: rgb(59, 59, 59); color: white;">Clear All Data</button>
         <h2>Choreography Scheduler</h2>
         <div class="section">
             <h3>Teachers</h3>
@@ -48,11 +48,8 @@
             <input type="number" id="groupDuration" placeholder="Duration (min)">
             <input type="text" id="groupDancers" placeholder="Dancer Names (space-separated)">
             <button onclick="addGroup()">Add Group</button>
-            <ul id="groupList"></ul>
+            <ul id="groupList" class="sortable"></ul>
         </div>
-
-        <!-- <button onclick="generateSchedule()">Generate Schedule</button> -->
-        <button onclick="clearData()" style="background-color: red; color: white;">Clear All Data</button>
         
         <div class="section">
             <h3>Teacher Schedules</h3>
@@ -93,6 +90,42 @@
         let historyStack = [];
         let redoStack = [];
 
+        document.addEventListener("keydown", function(event) {
+            if (event.ctrlKey && event.key === "z") {
+                if (event.shiftKey) { 
+                    // redoLastAction();
+                } else {
+
+                    undoLastAction();
+                }
+            }
+            if (event.ctrlKey && event.key === "y") {
+                redoLastAction();
+            }
+        });
+        
+        document.getElementById("teacherName").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent form submission
+                addTeacher();
+            }
+        });
+
+        document.getElementById("groupDuration").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById("groupDancers").focus(); // Move focus to the dancers field
+            }
+        });
+
+        document.getElementById("groupDancers").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addGroup();
+            }
+        });
+
+
         function saveToHistory() {
             historyStack.push({
                 teachers: JSON.parse(JSON.stringify(teachers)),
@@ -119,6 +152,7 @@
                 saveData();
                 updateTeacherList();
                 updateGroupList();
+                generateSchedule();
             }
         }
 
@@ -135,6 +169,7 @@
                 saveData();
                 updateTeacherList();
                 updateGroupList();
+                generateSchedule();
             }
         }
 
@@ -160,28 +195,79 @@
 
         function addGroup() {
             let duration = parseInt(document.getElementById("groupDuration").value);
-            let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
+            let dancers = document.getElementById("groupDancers").value.split(',').map(d => d.trim());
 
             if (!isNaN(duration) && dancers.length > 0) {
-                saveToHistory();
-                let groupId = groups.length + 1;
-                let group = { id: groupId, duration, dancers };
+                let index = groups.length;
+                let group = { id: index + 1, duration, dancers };
                 groups.push(group);
-                saveData();
-                updateGroupList();
 
-                document.getElementById("groupDuration").value = "";
-                document.getElementById("groupDancers").value = "";
+                let groupItem = document.createElement("li");
+                groupItem.innerHTML = `
+                    Group ${group.id}: ${duration} min, Dancers: ${dancers.join(", ")}
+                    <button onclick="moveGroup(${index}, -1)">↑</button>
+                    <button onclick="moveGroup(${index}, 1)">↓</button>
+                `;
+                document.getElementById("groupList").appendChild(groupItem);
             }
-            generateSchedule()
         }
+        function moveGroup(index, direction) {
+            let newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < groups.length) {
+                [groups[index], groups[newIndex]] = [groups[newIndex], groups[index]];
+                updateUI();
+            }
+        }
+        function updateGroupOrder() {
+            const newOrder = Array.from(document.querySelectorAll("#groupList li")).map(li => parseInt(li.dataset.index));
+            groups = newOrder.map(i => groups[i]);
+        }
+
+        function makeListSortable(listId, onUpdate) {
+            const list = document.getElementById(listId);
+
+            list.addEventListener("dragstart", (event) => {
+                event.target.classList.add("dragging");
+                event.dataTransfer.setData("text/plain", event.target.dataset.index);
+            });
+
+            list.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                const draggingElement = list.querySelector(".dragging");
+                const afterElement = getDragAfterElement(list, event.clientY);
+                if (afterElement == null) {
+                    list.appendChild(draggingElement);
+                } else {
+                    list.insertBefore(draggingElement, afterElement);
+                }
+            });
+
+            list.addEventListener("dragend", () => {
+                document.querySelectorAll(".dragging").forEach(el => el.classList.remove("dragging"));
+                onUpdate(); // Update the underlying data structure
+            });
+        }
+        
+
+        function getDragAfterElement(list, y) {
+            const draggableElements = [...list.querySelectorAll("li:not(.dragging)")];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Apply sortable behavior to groups
+        makeListSortable("groupList", updateGroupOrder);
+
 
         function deleteGroup(groupId) {
             saveToHistory();
             groups = groups.filter(g => g.id !== groupId);
             saveData();
             updateGroupList();
-            generateSchedule()
+            generateSchedule();
         }
 
 
@@ -206,7 +292,7 @@
             teacherList.innerHTML = teachers.map(t => `
                 <li>
                     ${t} 
-                    <button onclick="deleteTeacher('${t}')" style="margin-left: 10px; color: red;">X</button>
+                    <button onclick="deleteTeacher('${t}')" style="margin-left: 10px; color:red">X</button>
                 </li>
             `).join('');
         }
@@ -244,9 +330,11 @@
         }
 
         function clearData() {
+            saveToHistory();
             localStorage.clear();
             teachers = [];
             groups = [];
+            saveData();
             updateTeacherList();
             updateGroupList();
             document.getElementById("scheduleOutputs").innerHTML = "";
@@ -254,7 +342,7 @@
         }
 
         function generateSchedule() {
-            if (teachers.length === 0 || groups.length === 0) {
+            if (teachers.length === 0 && groups.length === 0) {
                 alert("Please add at least one teacher and one group.");
                 return;
             }
@@ -269,7 +357,7 @@
 
             let teacherColors = {};
             teachers.forEach((t, i) => {
-                teacherColors[t] = `hsl(${(i * 60) % 360}, 70%, 50%)`;
+                teacherColors[t] = `hsl(${(i * 60 + 335) % 360}, 75%, 62.5%)`;
             });
 
             for (let group of groups) {
