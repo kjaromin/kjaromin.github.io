@@ -288,7 +288,7 @@
             let groupList = document.getElementById("groupList");
             groupList.innerHTML = groups.map(g => `
                 <li>
-                    Group ${g.id}: ${g.duration} min, Dancers: ${g.dancers.join(", ")}
+                    Group ${g.id}: ${g.duration} min, Dancers: ${g.dancers.join(" ")}
                     <button onclick="deleteGroup('${g.id}')" style="margin-left: 10px; color: red;">X</button>
                 </li>
             `).join('');
