@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choreography Scheduler</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .section { margin-bottom: 20px; }
+        button { padding: 8px 12px; cursor: pointer; }
+        .schedule-bar { width: 100%; background: #f0f0f0; height: 20px; margin: 5px 0; position: relative; display: flex; }
+        .schedule-segment { height: 100%; text-align: center; line-height: 20px; color: white; position: relative; }
+        .dancer-bar { width: 100%; background: #e0e0e0; height: 20px; margin: 5px 0; position: relative; display: flex; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Choreography Scheduler</h2>
+        
+        <div class="section">
+            <h3>Teachers</h3>
+            <input type="text" id="teacherName" placeholder="Teacher Name">
+            <button onclick="addTeacher()">Add Teacher</button>
+            <ul id="teacherList"></ul>
+        </div>
+
+        <div class="section">
+            <h3>Groups</h3>
+            <input type="number" id="groupDuration" placeholder="Duration (min)">
+            <input type="text" id="groupDancers" placeholder="Dancer Names (space-separated)">
+            <button onclick="addGroup()">Add Group</button>
+            <ul id="groupList"></ul>
+        </div>
+
+        <button onclick="generateSchedule()">Generate Schedule</button>
+        <div class="section">
+            <h3>Teacher Schedules</h3>
+            <div id="scheduleOutputs"></div>
+        </div>
+        <div class="section">
+            <h3>Dancer Schedules</h3>
+            <div id="dancerOutputs"></div>
+        </div>
+    </div>
+
+    <script>
+        let teachers = [];
+        let groups = [];
+
+        function addTeacher() {
+            let name = document.getElementById("teacherName").value.trim();
+            if (name) {
+                teachers.push(name);
+                document.getElementById("teacherList").innerHTML += `<li>${name}</li>`;
+                document.getElementById("teacherName").value = "";
+            }
+        }
+
+        function addGroup() {
+            let duration = parseInt(document.getElementById("groupDuration").value);
+            let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
+            if (!isNaN(duration) && dancers.length > 0) {
+                let group = { id: groups.length + 1, duration, dancers };
+                groups.push(group);
+                document.getElementById("groupList").innerHTML += `<li>Group ${group.id}: ${duration} min, Dancers: ${dancers.join(", ")}</li>`;
+                document.getElementById("groupDuration").value = "";
+                document.getElementById("groupDancers").value = "";
+            }
+        }
+
+        function generateSchedule() {
+            if (teachers.length === 0 || groups.length === 0) {
+                alert("Please add at least one teacher and one group.");
+                return;
+            }
+
+            let teacherAvailability = new Array(teachers.length).fill(0);
+            let dancerAvailability = new Map();
+            let dancerSchedules = new Map();
+            
+            groups.sort((a, b) => (b.duration * (b.dancers.length + 1)) - (a.duration * (a.dancers.length + 1)));
+            
+            let schedules = teachers.map(t => ({ teacher: t, schedule: [], totalDuration: 0 }));
+            
+            for (let group of groups) {
+                let teacherIdx = teacherAvailability.indexOf(Math.min(...teacherAvailability));
+                let teacherAvailableAt = teacherAvailability[teacherIdx];
+                let dancerAvailableAt = Math.max(0, ...group.dancers.map(d => dancerAvailability.get(d) || 0));
+                let startTime = Math.max(teacherAvailableAt, dancerAvailableAt);
+                let endTime = startTime + group.duration;
+                
+                teacherAvailability[teacherIdx] = endTime;
+                group.dancers.forEach(d => {
+                    dancerAvailability.set(d, endTime);
+                    if (!dancerSchedules.has(d)) dancerSchedules.set(d, []);
+                    dancerSchedules.get(d).push({ groupId: group.id, startTime, endTime });
+                });
+                
+                schedules[teacherIdx].schedule.push({ id: group.id, startTime, endTime, duration: group.duration });
+                schedules[teacherIdx].totalDuration = endTime;
+            }
+            
+            document.getElementById("scheduleOutputs").innerHTML = schedules.map(s => `
+                <h4>${s.teacher}'s Schedule</h4>
+                <div class="schedule-bar">
+                    ${s.schedule.map(g => `<div class="schedule-segment" style="width: ${g.duration * 5}px; background: #${Math.floor(Math.random()*16777215).toString(16)}">G${g.id}</div>`).join('')}
+                </div>
+                <ul>${s.schedule.map(g => `<li>Group ${g.id} from 9:${g.startTime} to ${g.endTime}</li>`).join('')}</ul>
+            `).join('');
+
+            document.getElementById("dancerOutputs").innerHTML = Array.from(dancerSchedules.entries()).map(([dancer, schedule]) => `
+                <h4>${dancer}'s Schedule</h4>
+                <div class="dancer-bar">
+                    ${schedule.map(g => `<div class="schedule-segment" style="width: ${g.endTime - g.startTime}px; background: #${Math.floor(Math.random()*16777215).toString(16)}">G${g.groupId}</div>`).join('')}
+                </div>
+                <ul>${schedule.map(g => `<li>Group ${g.groupId} from ${g.startTime} to ${g.endTime}</li>`).join('')}</ul>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
