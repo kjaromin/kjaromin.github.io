@@ -33,8 +33,9 @@
 </head>
 <body>
     <div class="container">
+        <button onclick="undoLastAction()">Undo</button>
+        <button onclick="redoLastAction()">Redo</button>
         <h2>Choreography Scheduler</h2>
-        
         <div class="section">
             <h3>Teachers</h3>
             <input type="text" id="teacherName" placeholder="Teacher Name">
@@ -50,10 +51,8 @@
             <ul id="groupList"></ul>
         </div>
 
-        <button onclick="generateSchedule()">Generate Schedule</button>
+        <!-- <button onclick="generateSchedule()">Generate Schedule</button> -->
         <button onclick="clearData()" style="background-color: red; color: white;">Clear All Data</button>
-        <button onclick="undoLastAction()">Undo</button>
-        <button onclick="redoLastAction()">Redo</button>
         
         <div class="section">
             <h3>Teacher Schedules</h3>
@@ -66,6 +65,7 @@
     </div>
 
     <script>
+        
         let teachers = [];
         let groups = [];
 
@@ -86,6 +86,8 @@
                 groups = savedGroups;
                 updateGroupList();
             }
+            
+            generateSchedule();
         }
 
         let historyStack = [];
@@ -145,6 +147,7 @@
                 updateTeacherList();
                 document.getElementById("teacherName").value = "";
             }
+            generateSchedule()
         }
 
         function deleteTeacher(name) {
@@ -152,6 +155,7 @@
             teachers = teachers.filter(t => t !== name);
             saveData();
             updateTeacherList();
+            generateSchedule()
         }
 
         function addGroup() {
@@ -169,6 +173,7 @@
                 document.getElementById("groupDuration").value = "";
                 document.getElementById("groupDancers").value = "";
             }
+            generateSchedule()
         }
 
         function deleteGroup(groupId) {
@@ -176,6 +181,7 @@
             groups = groups.filter(g => g.id !== groupId);
             saveData();
             updateGroupList();
+            generateSchedule()
         }
 
 
@@ -267,7 +273,17 @@
             });
 
             for (let group of groups) {
-                let teacherIdx = teacherAvailability.indexOf(Math.min(...teacherAvailability));
+                let availableTeachers = teachers.filter(t => !group.dancers.includes(t)); // Exclude dancers
+                let teacherIdx;
+
+                if (group.dancers.some(d => teachers.includes(d))) {
+                    // Find a teacher who is also in the group
+                    teacherIdx = teachers.indexOf(group.dancers.find(d => teachers.includes(d)));
+                } else {
+                    // Assign based on availability as before
+                    teacherIdx = teacherAvailability.indexOf(Math.min(...teacherAvailability));
+                }
+
                 let teacher = teachers[teacherIdx];
                 let teacherAvailableAt = teacherAvailability[teacherIdx];
                 let dancerAvailableAt = Math.max(0, ...group.dancers.map(d => dancerAvailability.get(d) || 0));
@@ -285,6 +301,7 @@
                 schedules[teacherIdx].totalDuration = endTime;
             }
 
+
             document.getElementById("scheduleOutputs").innerHTML = schedules.map(s => `
                 <h4>${s.teacher}'s Schedule</h4>
                 <div class="schedule-bar">
@@ -301,6 +318,7 @@
         }
 
         window.onload = loadData;
+        
     </script>
 </body>
 </html>
