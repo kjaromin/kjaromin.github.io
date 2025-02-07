@@ -52,7 +52,9 @@
 
         <button onclick="generateSchedule()">Generate Schedule</button>
         <button onclick="clearData()" style="background-color: red; color: white;">Clear All Data</button>
-
+        <button onclick="undoLastAction()">Undo</button>
+        <button onclick="redoLastAction()">Redo</button>
+        
         <div class="section">
             <h3>Teacher Schedules</h3>
             <div id="scheduleOutputs"></div>
@@ -86,9 +88,58 @@
             }
         }
 
+        let historyStack = [];
+        let redoStack = [];
+
+        function saveToHistory() {
+            historyStack.push({
+                teachers: JSON.parse(JSON.stringify(teachers)),
+                groups: JSON.parse(JSON.stringify(groups))
+            });
+
+            redoStack = []; // Clear redo stack since a new action is performed
+
+            if (historyStack.length > 10) {
+                historyStack.shift(); // Limit undo history to 10 actions
+            }
+        }
+
+        function undoLastAction() {
+            if (historyStack.length > 0) {
+                redoStack.push({
+                    teachers: JSON.parse(JSON.stringify(teachers)),
+                    groups: JSON.parse(JSON.stringify(groups))
+                });
+
+                let lastState = historyStack.pop();
+                teachers = lastState.teachers;
+                groups = lastState.groups;
+                saveData();
+                updateTeacherList();
+                updateGroupList();
+            }
+        }
+
+        function redoLastAction() {
+            if (redoStack.length > 0) {
+                historyStack.push({
+                    teachers: JSON.parse(JSON.stringify(teachers)),
+                    groups: JSON.parse(JSON.stringify(groups))
+                });
+
+                let redoState = redoStack.pop();
+                teachers = redoState.teachers;
+                groups = redoState.groups;
+                saveData();
+                updateTeacherList();
+                updateGroupList();
+            }
+        }
+
         function addTeacher() {
             let name = document.getElementById("teacherName").value.trim();
             if (name && !teachers.includes(name)) {
+                saveToHistory();
                 teachers.push(name);
                 saveData();
                 updateTeacherList();
@@ -97,19 +148,10 @@
         }
 
         function deleteTeacher(name) {
+            saveToHistory();
             teachers = teachers.filter(t => t !== name);
             saveData();
             updateTeacherList();
-        }
-
-        function updateTeacherList() {
-            let teacherList = document.getElementById("teacherList");
-            teacherList.innerHTML = teachers.map(t => `
-                <li>
-                    ${t} 
-                    <button onclick="deleteTeacher('${t}')" style="margin-left: 10px; color: red;">X</button>
-                </li>
-            `).join('');
         }
 
         function addGroup() {
@@ -117,6 +159,7 @@
             let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
 
             if (!isNaN(duration) && dancers.length > 0) {
+                saveToHistory();
                 let groupId = groups.length + 1;
                 let group = { id: groupId, duration, dancers };
                 groups.push(group);
@@ -129,10 +172,60 @@
         }
 
         function deleteGroup(groupId) {
+            saveToHistory();
             groups = groups.filter(g => g.id !== groupId);
             saveData();
             updateGroupList();
         }
+
+
+        // function addTeacher() {
+        //     let name = document.getElementById("teacherName").value.trim();
+        //     if (name && !teachers.includes(name)) {
+        //         teachers.push(name);
+        //         saveData();
+        //         updateTeacherList();
+        //         document.getElementById("teacherName").value = "";
+        //     }
+        // }
+
+        // function deleteTeacher(name) {
+        //     teachers = teachers.filter(t => t !== name);
+        //     saveData();
+        //     updateTeacherList();
+        // }
+
+        function updateTeacherList() {
+            let teacherList = document.getElementById("teacherList");
+            teacherList.innerHTML = teachers.map(t => `
+                <li>
+                    ${t} 
+                    <button onclick="deleteTeacher('${t}')" style="margin-left: 10px; color: red;">X</button>
+                </li>
+            `).join('');
+        }
+
+        // function addGroup() {
+        //     let duration = parseInt(document.getElementById("groupDuration").value);
+        //     let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
+
+        //     if (!isNaN(duration) && dancers.length > 0) {
+        //         let groupId = groups.length + 1;
+        //         let group = { id: groupId, duration, dancers };
+        //         groups.push(group);
+        //         saveData();
+        //         updateGroupList();
+
+        //         document.getElementById("groupDuration").value = "";
+        //         document.getElementById("groupDancers").value = "";
+        //     }
+        // }
+
+        // function deleteGroup(groupId) {
+        //     groups = groups.filter(g => g.id !== groupId);
+        //     saveData();
+        //     updateGroupList();
+        // }
 
         function updateGroupList() {
             let groupList = document.getElementById("groupList");
