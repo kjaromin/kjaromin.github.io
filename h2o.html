@@ -8,9 +8,26 @@
         body { font-family: Arial, sans-serif; padding: 20px; }
         .container { max-width: 600px; margin: auto; }
         .section { margin-bottom: 20px; }
-        button { padding: 8px 12px; cursor: pointer; }
-        .schedule-bar { width: 100%; background: #f0f0f0; height: 20px; margin: 5px 0; position: relative; display: flex; }
-        .schedule-segment { height: 100%; text-align: center; line-height: 20px; color: white; position: relative; }
+        button { padding: 8px 12px; cursor: pointer; margin: 5px; }
+        .schedule-bar, .dancer-bar {
+            width: 100%; 
+            height: 20px; 
+            margin: 10px 0; 
+            position: relative;
+            background: #ddd;
+        }
+        
+        .schedule-segment {
+            height: 100%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            position: absolute;
+            margin-right: 2px;
+            border-radius: 3px;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
         .dancer-bar { width: 100%; background: #e0e0e0; height: 20px; margin: 5px 0; position: relative; display: flex; }
     </style>
 </head>
@@ -34,6 +51,8 @@
         </div>
 
         <button onclick="generateSchedule()">Generate Schedule</button>
+        <button onclick="clearData()" style="background-color: red; color: white;">Clear All Data</button>
+
         <div class="section">
             <h3>Teacher Schedules</h3>
             <div id="scheduleOutputs"></div>
@@ -48,25 +67,91 @@
         let teachers = [];
         let groups = [];
 
+        function saveData() {
+            localStorage.setItem("teachers", JSON.stringify(teachers));
+            localStorage.setItem("groups", JSON.stringify(groups));
+        }
+
+        function loadData() {
+            let savedTeachers = JSON.parse(localStorage.getItem("teachers"));
+            let savedGroups = JSON.parse(localStorage.getItem("groups"));
+
+            if (savedTeachers) {
+                teachers = savedTeachers;
+                updateTeacherList();
+            }
+            if (savedGroups) {
+                groups = savedGroups;
+                updateGroupList();
+            }
+        }
+
         function addTeacher() {
             let name = document.getElementById("teacherName").value.trim();
-            if (name) {
+            if (name && !teachers.includes(name)) {
                 teachers.push(name);
-                document.getElementById("teacherList").innerHTML += `<li>${name}</li>`;
+                saveData();
+                updateTeacherList();
                 document.getElementById("teacherName").value = "";
             }
+        }
+
+        function deleteTeacher(name) {
+            teachers = teachers.filter(t => t !== name);
+            saveData();
+            updateTeacherList();
+        }
+
+        function updateTeacherList() {
+            let teacherList = document.getElementById("teacherList");
+            teacherList.innerHTML = teachers.map(t => `
+                <li>
+                    ${t} 
+                    <button onclick="deleteTeacher('${t}')" style="margin-left: 10px; color: red;">X</button>
+                </li>
+            `).join('');
         }
 
         function addGroup() {
             let duration = parseInt(document.getElementById("groupDuration").value);
             let dancers = document.getElementById("groupDancers").value.split(' ').map(d => d.trim());
+
             if (!isNaN(duration) && dancers.length > 0) {
-                let group = { id: groups.length + 1, duration, dancers };
+                let groupId = groups.length + 1;
+                let group = { id: groupId, duration, dancers };
                 groups.push(group);
-                document.getElementById("groupList").innerHTML += `<li>Group ${group.id}: ${duration} min, Dancers: ${dancers.join(", ")}</li>`;
+                saveData();
+                updateGroupList();
+
                 document.getElementById("groupDuration").value = "";
                 document.getElementById("groupDancers").value = "";
             }
+        }
+
+        function deleteGroup(groupId) {
+            groups = groups.filter(g => g.id !== groupId);
+            saveData();
+            updateGroupList();
+        }
+
+        function updateGroupList() {
+            let groupList = document.getElementById("groupList");
+            groupList.innerHTML = groups.map(g => `
+                <li>
+                    Group ${g.id}: ${g.duration} min, Dancers: ${g.dancers.join(", ")}
+                    <button onclick="deleteGroup(${g.id})" style="margin-left: 10px; color: red;">X</button>
+                </li>
+            `).join('');
+        }
+
+        function clearData() {
+            localStorage.clear();
+            teachers = [];
+            groups = [];
+            updateTeacherList();
+            updateGroupList();
+            document.getElementById("scheduleOutputs").innerHTML = "";
+            document.getElementById("dancerOutputs").innerHTML = "";
         }
 
         function generateSchedule() {
@@ -78,45 +163,51 @@
             let teacherAvailability = new Array(teachers.length).fill(0);
             let dancerAvailability = new Map();
             let dancerSchedules = new Map();
-            
+
             groups.sort((a, b) => (b.duration * (b.dancers.length + 1)) - (a.duration * (a.dancers.length + 1)));
-            
+
             let schedules = teachers.map(t => ({ teacher: t, schedule: [], totalDuration: 0 }));
-            
+
+            let teacherColors = {};
+            teachers.forEach((t, i) => {
+                teacherColors[t] = `hsl(${(i * 60) % 360}, 70%, 50%)`;
+            });
+
             for (let group of groups) {
                 let teacherIdx = teacherAvailability.indexOf(Math.min(...teacherAvailability));
+                let teacher = teachers[teacherIdx];
                 let teacherAvailableAt = teacherAvailability[teacherIdx];
                 let dancerAvailableAt = Math.max(0, ...group.dancers.map(d => dancerAvailability.get(d) || 0));
                 let startTime = Math.max(teacherAvailableAt, dancerAvailableAt);
                 let endTime = startTime + group.duration;
-                
+
                 teacherAvailability[teacherIdx] = endTime;
                 group.dancers.forEach(d => {
                     dancerAvailability.set(d, endTime);
                     if (!dancerSchedules.has(d)) dancerSchedules.set(d, []);
-                    dancerSchedules.get(d).push({ groupId: group.id, startTime, endTime });
+                    dancerSchedules.get(d).push({ groupId: group.id, startTime, endTime, teacher });
                 });
-                
+
                 schedules[teacherIdx].schedule.push({ id: group.id, startTime, endTime, duration: group.duration });
                 schedules[teacherIdx].totalDuration = endTime;
             }
-            
+
             document.getElementById("scheduleOutputs").innerHTML = schedules.map(s => `
                 <h4>${s.teacher}'s Schedule</h4>
                 <div class="schedule-bar">
-                    ${s.schedule.map(g => `<div class="schedule-segment" style="width: ${g.duration * 5}px; background: #${Math.floor(Math.random()*16777215).toString(16)}">G${g.id}</div>`).join('')}
+                    ${s.schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${g.duration * 5}px; background: ${teacherColors[s.teacher]}">G${g.id}</div>`).join('')}
                 </div>
-                <ul>${s.schedule.map(g => `<li>Group ${g.id} from 9:${g.startTime} to ${g.endTime}</li>`).join('')}</ul>
             `).join('');
 
             document.getElementById("dancerOutputs").innerHTML = Array.from(dancerSchedules.entries()).map(([dancer, schedule]) => `
                 <h4>${dancer}'s Schedule</h4>
                 <div class="dancer-bar">
-                    ${schedule.map(g => `<div class="schedule-segment" style="width: ${g.endTime - g.startTime}px; background: #${Math.floor(Math.random()*16777215).toString(16)}">G${g.groupId}</div>`).join('')}
+                    ${schedule.map(g => `<div class="schedule-segment" style="left: ${g.startTime * 5}px; width: ${(g.endTime - g.startTime) * 5}px; background: ${teacherColors[g.teacher]}">G${g.groupId}</div>`).join('')}
                 </div>
-                <ul>${schedule.map(g => `<li>Group ${g.groupId} from ${g.startTime} to ${g.endTime}</li>`).join('')}</ul>
             `).join('');
         }
+
+        window.onload = loadData;
     </script>
 </body>
 </html>
